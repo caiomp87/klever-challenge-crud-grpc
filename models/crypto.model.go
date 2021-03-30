@@ -3,15 +3,16 @@ package models
 import "gopkg.in/mgo.v2/bson"
 
 type Crypto struct {
-	Id       string `bson:"_id,omitempty" json:"id"`
-	Name     string `bson:"name" json:"name"`
-	Likes    int    `bson:"likes" json:"likes"`
-	Dislikes int    `bson:"dislikes" json:"dislikes"`
+	Id       bson.ObjectId `bson:"_id,omitempty" json:"id"`
+	IdStr    string        `bson:"_idstr,omitempty" json:"idstr"`
+	Name     string        `bson:"name" json:"name"`
+	Likes    int           `bson:"likes" json:"likes"`
+	Dislikes int           `bson:"dislikes" json:"dislikes"`
 }
 
 func NewCrypto() *Crypto {
 	return &Crypto{
-		Id: bson.NewObjectId().Hex(),
+		IdStr: bson.NewObjectId().Hex(),
 	}
 }
 
