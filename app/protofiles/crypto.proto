@@ -1,0 +1,20 @@
+syntax="proto3";
+
+package kleverChallenge;
+
+option go_package = "app/protofiles/pb";
+
+message Crypto {
+  string name = 1;
+  int64 likes = 2;
+  int64 dislikes = 3;
+}
+
+message CryptoResult {
+  string id = 1;
+  string name = 2;
+}
+
+service CryptoService {
+  rpc CreateCrypto(Crypto) returns (CryptoResult) {};
+}
