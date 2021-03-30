@@ -4,10 +4,10 @@ package kleverChallenge;
 
 option go_package = "app/protofiles/pb";
 
+message Empty {};
+
 message Crypto {
   string name = 1;
-  int64 likes = 2;
-  int64 dislikes = 3;
 }
 
 message CryptoResult {
@@ -17,4 +17,5 @@ message CryptoResult {
 
 service CryptoService {
   rpc CreateCrypto(Crypto) returns (CryptoResult) {};
+  rpc ListCryptos(Empty) returns (stream CryptoResult) {};
 }

@@ -19,6 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CryptoServiceClient interface {
 	CreateCrypto(ctx context.Context, in *Crypto, opts ...grpc.CallOption) (*CryptoResult, error)
+	ListCryptos(ctx context.Context, in *Empty, opts ...grpc.CallOption) (CryptoService_ListCryptosClient, error)
 }
 
 type cryptoServiceClient struct {
@@ -38,11 +39,44 @@ func (c *cryptoServiceClient) CreateCrypto(ctx context.Context, in *Crypto, opts
 	return out, nil
 }
 
+func (c *cryptoServiceClient) ListCryptos(ctx context.Context, in *Empty, opts ...grpc.CallOption) (CryptoService_ListCryptosClient, error) {
+	stream, err := c.cc.NewStream(ctx, &CryptoService_ServiceDesc.Streams[0], "/kleverChallenge.CryptoService/ListCryptos", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &cryptoServiceListCryptosClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type CryptoService_ListCryptosClient interface {
+	Recv() (*CryptoResult, error)
+	grpc.ClientStream
+}
+
+type cryptoServiceListCryptosClient struct {
+	grpc.ClientStream
+}
+
+func (x *cryptoServiceListCryptosClient) Recv() (*CryptoResult, error) {
+	m := new(CryptoResult)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // CryptoServiceServer is the server API for CryptoService service.
 // All implementations must embed UnimplementedCryptoServiceServer
 // for forward compatibility
 type CryptoServiceServer interface {
 	CreateCrypto(context.Context, *Crypto) (*CryptoResult, error)
+	ListCryptos(*Empty, CryptoService_ListCryptosServer) error
 	mustEmbedUnimplementedCryptoServiceServer()
 }
 
@@ -52,6 +86,9 @@ type UnimplementedCryptoServiceServer struct {
 
 func (UnimplementedCryptoServiceServer) CreateCrypto(context.Context, *Crypto) (*CryptoResult, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateCrypto not implemented")
+}
+func (UnimplementedCryptoServiceServer) ListCryptos(*Empty, CryptoService_ListCryptosServer) error {
+	return status.Errorf(codes.Unimplemented, "method ListCryptos not implemented")
 }
 func (UnimplementedCryptoServiceServer) mustEmbedUnimplementedCryptoServiceServer() {}
 
@@ -84,6 +121,27 @@ func _CryptoService_CreateCrypto_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CryptoService_ListCryptos_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(Empty)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(CryptoServiceServer).ListCryptos(m, &cryptoServiceListCryptosServer{stream})
+}
+
+type CryptoService_ListCryptosServer interface {
+	Send(*CryptoResult) error
+	grpc.ServerStream
+}
+
+type cryptoServiceListCryptosServer struct {
+	grpc.ServerStream
+}
+
+func (x *cryptoServiceListCryptosServer) Send(m *CryptoResult) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // CryptoService_ServiceDesc is the grpc.ServiceDesc for CryptoService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -96,6 +154,12 @@ var CryptoService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _CryptoService_CreateCrypto_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "ListCryptos",
+			Handler:       _CryptoService_ListCryptos_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "crypto.proto",
 }
